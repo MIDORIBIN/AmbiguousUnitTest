@@ -1,5 +1,6 @@
 package parser;
 
+import com.github.javaparser.JavaToken;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.*;
@@ -16,12 +17,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.Optional;
 
 public class Main2 {
     public static void main(String[] args) {
-        String targetDir = "src/main/java/";
-        Path targetSourcePath = Paths.get(targetDir + "test/RucksackTest.java");
+        String targetDir = "src/main/resources/test/";
+        Path targetSourcePath = Paths.get(targetDir + "RucksackTest.java");
         Path dependenceSourcePath = Paths.get(targetDir);
         Path jarPath = Paths.get("C:/Users/kondo/.gradle/caches/modules-2/files-2.1/junit/junit/4.13/e49ccba652b735c93bd6e6f59760d8254cf597dd/junit-4.13.jar");
 
@@ -42,14 +42,13 @@ public class Main2 {
             CompilationUnit unit = StaticJavaParser.parse(targetSourcePath);
             System.out.println("***********************************************");
 
-            unit.findAll(MethodCallExpr.class).stream()
-                    .filter(be -> !be.getScope().equals(Optional.empty()))
-                    .filter(be -> be.getScope().get().calculateResolvedType().describe().startsWith("test"))
-                    .forEach(be -> {
-                        String className = be.getScope().get().calculateResolvedType().describe();
-                        String templateString = "${" + className + "." + be.getName() + "}";
-                        be.setName(templateString);
-                    });
+            TemplateVisitor templateVisitor = new TemplateVisitor();
+            unit.accept(templateVisitor, null);
+            templateVisitor.runnableList.forEach(Runnable::run);
+
+//            for (JavaToken javaToken : unit.getTokenRange().get()) {
+//                System.out.println(javaToken.getText() + javaToken.getCategory());
+//            }
 
             System.out.println("***********************************************");
 
