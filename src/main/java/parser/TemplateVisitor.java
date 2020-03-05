@@ -1,6 +1,10 @@
 package parser;
 
+import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.visitor.GenericVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitor;
@@ -16,6 +20,7 @@ import java.util.List;
  *
  * 参考
  * https://qiita.com/opengl-8080/items/50ddee7d635c7baee0ab
+ * https://www.javadoc.io/doc/com.github.javaparser/javaparser-core/latest/com/github/javaparser/ast/visitor/VoidVisitorAdapter.html
  */
 public class TemplateVisitor extends VoidVisitorAdapter<Void> {
     List<Runnable> runnableList = new ArrayList<>();
@@ -38,13 +43,33 @@ public class TemplateVisitor extends VoidVisitorAdapter<Void> {
     }
 
     @Override
-    public void visit(VariableDeclarationExpr classExpr, Void arg) {
-        super.visit(classExpr, arg);
-        String className = classExpr.calculateResolvedType().describe();
+    public void visit(VariableDeclarationExpr variable, Void arg) {
+        super.visit(variable, arg);
+        String className = variable.calculateResolvedType().describe();
         if (className.contains(".")) {
             return;
         }
-        ClassOrInterfaceType type = new ClassOrInterfaceType() {
+        ClassOrInterfaceType type = createClassType(className);
+
+        Runnable runner = () -> variable.setAllTypes(type);
+        this.runnableList.add(runner);
+    }
+
+    @Override
+    public void visit(ObjectCreationExpr constructor, Void arg) {
+        super.visit(constructor, arg);
+        String className = constructor.calculateResolvedType().describe();
+        if (className.contains(".")) {
+            return;
+        }
+        ClassOrInterfaceType type = createClassType(className);
+
+        Runnable runner = () -> constructor.setType(type);
+        this.runnableList.add(runner);
+    }
+
+    private ClassOrInterfaceType createClassType(String className) {
+        return new ClassOrInterfaceType() {
             @Override
             public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
                 return v.visit(this, arg);
@@ -57,7 +82,7 @@ public class TemplateVisitor extends VoidVisitorAdapter<Void> {
 
             @Override
             public String asString() {
-                return "aaa";
+                return "${" + className + "}";
             }
 
             @Override
@@ -65,8 +90,5 @@ public class TemplateVisitor extends VoidVisitorAdapter<Void> {
                 return new SimpleName("${" + className + "}");
             }
         };
-
-        Runnable runner = () -> classExpr.setAllTypes(type);
-        this.runnableList.add(runner);
     }
 }

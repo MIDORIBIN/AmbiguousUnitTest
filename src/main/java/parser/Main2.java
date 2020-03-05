@@ -1,5 +1,6 @@
 package parser;
 
+import com.github.javaparser.JavaToken;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
@@ -45,7 +46,7 @@ public class Main2 {
             templateVisitor.runnableList.forEach(Runnable::run);
 
 //            for (JavaToken javaToken : unit.getTokenRange().get()) {
-//                System.out.println(javaToken.getText() + javaToken.getCategory());
+//                System.out.println(javaToken.getText() + " : " + javaToken.getCategory());
 //            }
 
             System.out.println("***********************************************");
