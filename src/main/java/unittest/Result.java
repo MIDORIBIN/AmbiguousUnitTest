@@ -1,4 +1,4 @@
-package entity;
+package unittest;
 
 public class Result {
     private boolean isSuccess;

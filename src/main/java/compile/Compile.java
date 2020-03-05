@@ -1,51 +1,47 @@
 package compile;
 
 import com.sun.org.apache.xalan.internal.xsltc.compiler.CompilerException;
-import entity.Result;
-import entity.Results;
-import org.junit.internal.TextListener;
-import org.junit.runner.JUnitCore;
 
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
 import javax.tools.ToolProvider;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Compile {
-    public static Results compileAndRun(JavaCode target, List<JavaCode> other) {
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        ClassFileManager manager = new ClassFileManager(compiler);
 
-        // コンパイル
-        Result compileResult = compile(target, other, manager);
-
-        // 実行
-        Result unitTestResult = new Result(false, "Not Running");
-        if (compileResult.getIsSuccess()) {
-            unitTestResult = runUnitTest(manager, target.getName());
-        }
-
-        try {
-            manager.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return new Results(compileResult, unitTestResult);
+    public static Class<?> compile(String target, List<String> others) throws CompilerException {
+        JavaCode targetCode = createJavaCodeFromCode(target);
+        List<JavaCode> otherCodes = others.stream()
+                .map(Compile::createJavaCodeFromCode)
+                .collect(Collectors.toList());
+        return compileJavaCode(targetCode, otherCodes);
     }
 
-    public static Result compile(JavaCode target, List<JavaCode> other, ClassFileManager manager) {
-        // コンパイル
-        List<JavaCode> list = new ArrayList<>();
-        list.add(target);
-        list.addAll(other);
-        return compileOnly(manager, list);
+    private static JavaCode createJavaCodeFromCode(String code) {
+        String className = extraClassNameFromCode(code);
+        return new JavaCode(className, code);
     }
 
-    public static Class<?> compile2(JavaCode target, List<JavaCode> other) throws CompilerException, ClassNotFoundException {
+    /**
+     * クラス名をソースコード上から取得
+     * 取得の仕方が甘い
+     * コメントとかを挿入されたら厳しい
+     * @param code
+     */
+    private static String extraClassNameFromCode(String code) {
+        Pattern p = Pattern.compile("class\\s+([a-zA-Z]+)");
+        Matcher m = p.matcher(code);
+        if (m.find()) {
+            return m.group(1);
+        }
+        return null;
+    }
+
+    private static Class<?> compileJavaCode(JavaCode target, List<JavaCode> other) throws CompilerException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         ClassFileManager manager = new ClassFileManager(compiler);
 
@@ -68,87 +64,13 @@ public class Compile {
             throw new CompilerException(writer.toString());
         }
 
-        return manager.getClassLoader(null).loadClass(target.getName());
+        ClassLoader classLoader = manager.getClassLoader(null);
 
-//        return new Result(isCompileSuccess, writer.toString());
-    }
-
-    private static Result compileOnly(ClassFileManager manager, List<JavaCode> javaFileList) {
-        Writer writer = new StringWriter();
-
-        boolean isCompileSuccess = manager.getCompiler().getTask(
-                writer,
-                manager,
-                null,
-                null,
-                null,
-                javaFileList
-        ).call();
-
-        return new Result(isCompileSuccess, writer.toString());
-    }
-
-    /**
-     * ユニットテスト
-     * 標準出力の問題からこのメソッドは同時に呼ばれないようになってる
-     * @param manager　マネージャ
-     * @param className 実効対象（testファイル）のクラス名
-     * @return ユニットテストの評価結果
-     */
-    public synchronized static Result runUnitTest(JavaFileManager manager, String className) {
-        ClassLoader cl = manager.getClassLoader(null);
-
-        Class<?> clazz = null;
         try {
-            clazz = cl.loadClass(className);
+            return classLoader.loadClass(target.getName());
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        }
-
-
-        PrintStream defaultPrintStream = System.out;
-
-        JUnitCore jUnitCore = new JUnitCore();
-        ByteArrayOutputStream resultBytes = new ByteArrayOutputStream();
-        PrintStream resultStream = new PrintStream(resultBytes);
-        jUnitCore.addListener(new TextListener(resultStream));
-
-        org.junit.runner.Result result = jUnitCore.run(clazz);
-        System.setOut(defaultPrintStream);
-
-        if (result.getFailureCount() > 0) {
-            String output = "";
-            try {
-                output = resultBytes.toString("UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            System.out.println("=============");
-            System.out.println(output);
-            System.out.println("=============");
-        }
-
-        // Tests run: 3,  Failures: 3
-        String message = "Tests " +
-                "run: " + result.getRunCount() + ", " +
-                "Failures: " + result.getFailureCount();
-
-        // 無限ループ対策
-        stopTestThread();
-
-        return new Result(result.wasSuccessful(), message);
-    }
-
-    /**
-     * 全てのスレッドを探索して、Time-limited testの名前のスレッドを強制終了
-     */
-    @SuppressWarnings("deprecation")
-    private static void stopTestThread() {
-        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-        for (Thread thread: threadSet) {
-            if (thread.getName().equals("Time-limited test")) {
-                thread.stop();
-            }
+            return null;
         }
     }
 }
