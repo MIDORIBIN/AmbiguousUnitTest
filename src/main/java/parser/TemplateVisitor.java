@@ -31,7 +31,7 @@ public class TemplateVisitor extends VoidVisitorAdapter<Void> {
             return;
         }
         String className = scope.calculateResolvedType().describe();
-        String templateString = "${" + className + "." + methodCallExpr.getName() + "}";
+        String templateString = "${" + methodCallExpr.getName() + "}";
 
         Runnable runner = () -> methodCallExpr.setName(templateString);
         this.runnableList.add(runner);
