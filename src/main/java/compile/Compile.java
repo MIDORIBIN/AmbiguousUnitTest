@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Compile {
-
     public static Class<?> compile(String target, List<String> others) throws CompileException {
         JavaCode targetCode = createJavaCodeFromCode(target);
         List<JavaCode> otherCodes = others.stream()
@@ -31,7 +30,7 @@ public class Compile {
      * @param code ソースコード
      */
     private static String extraClassNameFromCode(String code) {
-        Pattern p = Pattern.compile("class\\s+([a-zA-Z]+)");
+        Pattern p = Pattern.compile("public\\s+class\\s+([a-zA-Z]+)");
         Matcher m = p.matcher(code);
         if (m.find()) {
             return m.group(1);

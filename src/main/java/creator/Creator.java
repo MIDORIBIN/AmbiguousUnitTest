@@ -36,7 +36,7 @@ public class Creator {
     }
 
     private static Set<String> createAnswerSet(String template) {
-        Pattern p = Pattern.compile("\\$\\{([^}]+)\\}");
+        Pattern p = Pattern.compile("\\$\\{([^}]+)}");
         Matcher m = p.matcher(template);
 
         Set<String> set = new HashSet<>();
@@ -49,9 +49,9 @@ public class Creator {
     /**
      * 距離が50以上の時のみ候補から最有力候補を返す
      * 全部50以下なら模範解答をそのまま返す
-     * @param answer
-     * @param candidateSet
-     * @return
+     * @param answer 模範解答
+     * @param candidateSet 候補のセット
+     * @return 最有力候補
      */
     private static String getNearestWord(String answer, Set<String> candidateSet) {
         return candidateSet.stream()

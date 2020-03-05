@@ -28,8 +28,6 @@ public final class ClassFileManager extends ForwardingJavaFileManager<JavaFileMa
         }
     };
 
-
-
     public ClassFileManager(final JavaCompiler javaCompiler) {
         super(javaCompiler.getStandardFileManager(null, null, null));
         this.compiler = javaCompiler;
