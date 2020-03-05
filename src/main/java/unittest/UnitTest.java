@@ -1,6 +1,6 @@
 package unittest;
 
-import com.sun.org.apache.xalan.internal.xsltc.compiler.CompilerException;
+import compile.CompileException;
 import org.junit.internal.TextListener;
 import org.junit.runner.JUnitCore;
 
@@ -21,14 +21,28 @@ import static creator.Creator.templateToJava;
 
 public class UnitTest {
 
-    public static void main(String[] args) throws IOException, CompilerException {
+    public static void main(String[] args) throws IOException {
         String template = readFile("RucksackTest.template");
         String gum = readFile("Gum.java");
         String rucksack = readFile("Rucksack2.java");
-        func(template, rucksack, Collections.singletonList(gum));
+
+        Result result;
+        try {
+            result = runUnitTest(template, rucksack, Collections.singletonList(gum));
+        } catch (CompileException e) {
+            e.printStackTrace();
+            result = new Result(false, e.getMessage());
+        }
+        System.out.println(result);
     }
 
-    private static void func(String template, String target, List<String> others) throws CompilerException {
+    // debug
+    private static String readFile(String fileName) throws IOException {
+        Path file = Paths.get("src/main/resources/test/" + fileName);
+        return Files.lines(file).collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    private static Result runUnitTest(String template, String target, List<String> others) throws CompileException {
         Class<?> testTarget = compile(target, others);
 
         String test = templateToJava(template, testTarget);
@@ -39,15 +53,7 @@ public class UnitTest {
 
         Class<?> testClass = compile(test, javaCodeList);
 
-        Result result = runUnitTest(testClass);
-        System.out.println(result);
-    }
-
-
-    // debug
-    private static String readFile(String fileName) throws IOException {
-        Path file = Paths.get("src/main/resources/test/" + fileName);
-        return Files.lines(file).collect(Collectors.joining(System.lineSeparator()));
+        return runUnitTest(testClass);
     }
 
     /**
@@ -56,7 +62,7 @@ public class UnitTest {
      * @param testClass junitのクラスクラス
      * @return ユニットテストの評価結果
      */
-    public synchronized static Result runUnitTest(Class<?> testClass) {
+    private synchronized static Result runUnitTest(Class<?> testClass) {
         PrintStream defaultPrintStream = System.out;
 
         JUnitCore jUnitCore = new JUnitCore();
