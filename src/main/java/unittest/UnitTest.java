@@ -1,8 +1,10 @@
 package unittest;
 
+import compile.CompileClasses;
 import compile.CompileException;
 import org.junit.internal.TextListener;
 import org.junit.runner.JUnitCore;
+import org.junit.runner.notification.Failure;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,7 +24,7 @@ import static creator.Creator.templateToJava;
 public class UnitTest {
 
     public static void main(String[] args) throws IOException {
-        String template = readFile("RucksackTest.template");
+        String template = readFile("perfectSample.template");
         String gum = readFile("Gum.java");
         String rucksack = readFile("Rucksack2.java");
 
@@ -43,15 +45,15 @@ public class UnitTest {
     }
 
     private static Result runUnitTest(String template, String target, List<String> others) throws CompileException {
-        Class<?> testTarget = compile(target, others);
+        CompileClasses compileClasses = compile(target, others);
 
-        String test = templateToJava(template, testTarget);
+        String test = templateToJava(template, compileClasses);
 
         List<String> javaCodeList = new ArrayList<>();
         javaCodeList.add(target);
         javaCodeList.addAll(others);
 
-        Class<?> testClass = compile(test, javaCodeList);
+        Class<?> testClass = compile(test, javaCodeList).getTargetClass();
 
         return runUnitTest(testClass);
     }
@@ -72,6 +74,14 @@ public class UnitTest {
         org.junit.runner.Result result = jUnitCore.run(testClass);
 
         System.setOut(defaultPrintStream);
+
+        for (Failure failure : result.getFailures()) {
+            System.out.println(failure.getDescription());
+            System.out.println(failure.getMessage());
+            System.out.println(failure.getTestHeader());
+            System.out.println(failure.getTrace());
+            System.out.println(failure.getTrimmedTrace());
+        }
 
         // Tests run: 3,  Failures: 3
         String message = "Tests " +

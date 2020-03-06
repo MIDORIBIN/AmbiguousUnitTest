@@ -1,10 +1,9 @@
 package creator;
 
+import compile.CompileClasses;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.lucene.search.spell.LevensteinDistance;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,28 +11,25 @@ import java.util.stream.Collectors;
 
 
 public class Creator {
+    public static String templateToJava(String template, CompileClasses compileClasses) {
+        Set<ClassStructure> classStructureSet = new HashSet<>();
+        classStructureSet.add(new ClassStructure(compileClasses.getTargetClass()));
+        compileClasses.getOtherClassList()
+                .forEach(other -> classStructureSet.add(new ClassStructure(other)));
 
-    public static String templateToJava(String template, Class<?> targetClass) {
-        Map<String, String> map = createMap(template, targetClass);
+        Map<String, String> map = createMap(template, classStructureSet);
         return new StringSubstitutor(map).replace(template);
     }
 
-    private static Map<String, String> createMap(String template, Class<?> targetClass) {
+    private static Map<String, String> createMap(String template, Set<ClassStructure> classStructureSet) {
         Set<String> answerSet = createAnswerSet(template);
-        Set<String> targetSet = createTargetSet(targetClass);
+
         return answerSet.stream().collect(Collectors.toMap(
                 answer -> answer,
-                answer -> getNearestWord(answer, targetSet)
+                answer -> getNearestWord(answer, classStructureSet)
         ));
     }
 
-    private static Set<String> createTargetSet(Class<?> targetClass) {
-        Set<String> set = new HashSet<>();
-        set.addAll(getFieldNameList(targetClass));
-        set.addAll(getMethodNameList(targetClass));
-        set.add(targetClass.getName());
-        return set;
-    }
 
     private static Set<String> createAnswerSet(String template) {
         Pattern p = Pattern.compile("\\$\\{([^}]+)}");
@@ -50,30 +46,46 @@ public class Creator {
      * 距離が50以上の時のみ候補から最有力候補を返す
      * 全部50以下なら模範解答をそのまま返す
      * @param answer 模範解答
-     * @param candidateSet 候補のセット
+     * @param classStructureSet 候補のセット
      * @return 最有力候補
      */
-    private static String getNearestWord(String answer, Set<String> candidateSet) {
-        return candidateSet.stream()
-                .filter(candidate -> getLevenshteinDistance(answer, candidate) > 50)
-                .max(Comparator.comparingInt(s -> getLevenshteinDistance(answer, s)))
-                .orElse(answer);
+    private static String getNearestWord(String answer, Set<ClassStructure> classStructureSet) {
+//        return candidateSet.stream()
+//                .filter(candidate -> getLevenshteinDistance(answer, candidate) > 50)
+//                .max(Comparator.comparingInt(s -> getLevenshteinDistance(answer, s)))
+//                .orElse(answer);
+        String[] line = answer.split("\\.");
+        String answerClassName = line[0];
+        String structureType = line[1];
+        String structureNmae = line[2];
+
+        ClassStructure classStructure = selectClassStructure(answerClassName, classStructureSet);
+        if ("CLASS".equals(structureType)) {
+            return classStructure.getClassName();
+        }
+        if ("METHOD".equals(structureType)) {
+            return selectWord(structureNmae, classStructure.getMethodSet());
+        }
+        if ("FIELD".equals(structureType)) {
+            return selectWord(structureNmae, classStructure.getFieldSet());
+        }
+        return null;
+    }
+
+    private static ClassStructure selectClassStructure(String answerClassName, Set<ClassStructure> classStructureSet) {
+        return classStructureSet.stream()
+                .max(Comparator.comparingInt(structure -> getLevenshteinDistance(answerClassName, structure.getClassName())))
+                .get();
+    }
+
+    private static String selectWord(String answerName, Set<String> wordSet) {
+        return wordSet.stream()
+                .max(Comparator.comparingInt(word -> getLevenshteinDistance(answerName, word)))
+                .get();
     }
 
     private static int getLevenshteinDistance(String s1, String s2){
         LevensteinDistance dis =  new LevensteinDistance();
         return (int) (dis.getDistance(s1, s2) * 100);
-    }
-
-    private static List<String> getFieldNameList(Class<?> clazz) {
-        return Arrays.stream(clazz.getDeclaredFields())
-                .map(Field::getName)
-                .collect(Collectors.toList());
-    }
-
-    private static List<String> getMethodNameList(Class<?> clazz) {
-        return Arrays.stream(clazz.getDeclaredMethods())
-                .map(Method::getName)
-                .collect(Collectors.toList());
     }
 }

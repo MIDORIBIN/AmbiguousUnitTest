@@ -1,10 +1,6 @@
 package parser;
 
-import com.github.javaparser.ast.Modifier;
-import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.expr.*;
-import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.visitor.GenericVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitor;
@@ -32,11 +28,11 @@ public class TemplateVisitor extends VoidVisitorAdapter<Void> {
         if (scope == null) {
             return;
         }
-        if (scope.calculateResolvedType().describe().contains(".")) {
+        String className = scope.calculateResolvedType().describe();
+        if (className.contains(".")) {
             return;
         }
-        String className = scope.calculateResolvedType().describe();
-        String templateString = "${" + methodCallExpr.getName() + "}";
+        String templateString = "${" + className + ".METHOD." + methodCallExpr.getName() + "}";
 
         Runnable runner = () -> methodCallExpr.setName(templateString);
         this.runnableList.add(runner);
@@ -82,12 +78,12 @@ public class TemplateVisitor extends VoidVisitorAdapter<Void> {
 
             @Override
             public String asString() {
-                return "${" + className + "}";
+                return "${" + className + ".CLASS." + className + "}";
             }
 
             @Override
             public SimpleName getName() {
-                return new SimpleName("${" + className + "}");
+                return new SimpleName("${" + className + ".CLASS." + className + "}");
             }
         };
     }

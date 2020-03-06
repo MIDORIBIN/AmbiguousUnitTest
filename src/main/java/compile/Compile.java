@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Compile {
-    public static Class<?> compile(String target, List<String> others) throws CompileException {
+    public static CompileClasses compile(String target, List<String> others) throws CompileException {
         JavaCode targetCode = createJavaCodeFromCode(target);
         List<JavaCode> otherCodes = others.stream()
                 .map(Compile::createJavaCodeFromCode)
@@ -38,7 +38,7 @@ public class Compile {
         return null;
     }
 
-    private static Class<?> compileJavaCode(JavaCode target, List<JavaCode> other) throws CompileException {
+    private static CompileClasses compileJavaCode(JavaCode target, List<JavaCode> other) throws CompileException {
         List<JavaCode> list = new ArrayList<>();
         list.add(target);
         list.addAll(other);
@@ -64,7 +64,13 @@ public class Compile {
         ClassLoader classLoader = manager.getClassLoader(null);
 
         try {
-            return classLoader.loadClass(target.getName());
+            Class<?> targetClass = classLoader.loadClass(target.getName());
+            List<Class<?>> otherClassList = new ArrayList<>();
+            for (JavaCode javaCode : other) {
+                Class<?> clazz = classLoader.loadClass(javaCode.getName());
+                otherClassList.add(clazz);
+            }
+            return new CompileClasses(targetClass, otherClassList);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             return null;

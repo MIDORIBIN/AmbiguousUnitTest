@@ -1,6 +1,5 @@
 package parser;
 
-import com.github.javaparser.JavaToken;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
@@ -22,7 +21,8 @@ public class Main2 {
         String targetDir = "src/main/resources/test/";
         Path targetSourcePath = Paths.get(targetDir + "RucksackTest.java");
         Path dependenceSourcePath = Paths.get(targetDir);
-        Path jarPath = Paths.get("C:/Users/kondo/.gradle/caches/modules-2/files-2.1/junit/junit/4.13/e49ccba652b735c93bd6e6f59760d8254cf597dd/junit-4.13.jar");
+//        Path jarPath = Paths.get("C:/Users/kondo/.gradle/caches/modules-2/files-2.1/junit/junit/4.13/e49ccba652b735c93bd6e6f59760d8254cf597dd/junit-4.13.jar");
+        Path jarPath = Paths.get("/Users/kondo/.gradle/caches/modules-2/files-2.1/junit/junit/4.13/e49ccba652b735c93bd6e6f59760d8254cf597dd/junit-4.13.jar");
 
         try {
             CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
