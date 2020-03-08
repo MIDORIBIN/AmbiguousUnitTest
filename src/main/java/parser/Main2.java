@@ -2,6 +2,9 @@ package parser;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
@@ -14,47 +17,59 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Main2 {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        String targetTestFileName = "RucksackTest.java";
+
         String targetDir = "src/main/resources/test/";
-        Path targetSourcePath = Paths.get(targetDir + "RucksackTest.java");
-        Path dependenceSourcePath = Paths.get(targetDir);
-//        Path jarPath = Paths.get("C:/Users/kondo/.gradle/caches/modules-2/files-2.1/junit/junit/4.13/e49ccba652b735c93bd6e6f59760d8254cf597dd/junit-4.13.jar");
-        Path jarPath = Paths.get("/Users/kondo/.gradle/caches/modules-2/files-2.1/junit/junit/4.13/e49ccba652b735c93bd6e6f59760d8254cf597dd/junit-4.13.jar");
+        String dependenceFileName = targetTestFileName.replace("Test", "");
+        Path dependencePath = Paths.get(targetDir + dependenceFileName);
+        Path targetTestPath = Paths.get(targetDir + targetTestFileName);
+        initConfig(Paths.get(targetDir));
 
-        try {
-            CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
+        System.out.println("***********************************************");
 
-            combinedTypeSolver.add(new ReflectionTypeSolver());
-            // junit
-            JarTypeSolver jarTypeSolver = new JarTypeSolver(jarPath);
-            combinedTypeSolver.add(jarTypeSolver);
-            // 依存ファイル
-            JavaParserTypeSolver javaParserTypeSolver = new JavaParserTypeSolver(dependenceSourcePath);
-            combinedTypeSolver.add(javaParserTypeSolver);
+        Set<String> fieldNameList = getFieldNameSet(dependencePath);
 
-            JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
-            StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
+        CompilationUnit unit = StaticJavaParser.parse(targetTestPath);
+        TemplateVisitor templateVisitor = new TemplateVisitor(dependenceFileName.substring(0, dependenceFileName.length() - 5), fieldNameList);
+        unit.accept(templateVisitor, null);
+        templateVisitor.getRunnableList().forEach(Runnable::run);
 
-            CompilationUnit unit = StaticJavaParser.parse(targetSourcePath);
-            System.out.println("***********************************************");
+        System.out.println("***********************************************");
 
-            TemplateVisitor templateVisitor = new TemplateVisitor();
-            unit.accept(templateVisitor, null);
-            templateVisitor.runnableList.forEach(Runnable::run);
+//        System.out.println(unit);
+        Files.write(new File(targetDir + "Modified.java_template").toPath(), Collections.singleton(unit.toString()), StandardCharsets.UTF_8);
+    }
 
-//            for (JavaToken javaToken : unit.getTokenRange().get()) {
-//                System.out.println(javaToken.getText() + " : " + javaToken.getCategory());
-//            }
+    private static void initConfig(Path dependenceSourcePath) throws IOException {
+        Path jarPath = Paths.get("src/main/java/parser/junit-4.13.jar");
 
-            System.out.println("***********************************************");
+        CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
+        combinedTypeSolver.add(new ReflectionTypeSolver());
+        // junit
+        JarTypeSolver jarTypeSolver = new JarTypeSolver(jarPath);
+        combinedTypeSolver.add(jarTypeSolver);
+        // 依存ファイル
+        JavaParserTypeSolver javaParserTypeSolver = new JavaParserTypeSolver(dependenceSourcePath);
+        combinedTypeSolver.add(javaParserTypeSolver);
 
-//            System.out.println(unit);
-            Files.write(new File(targetDir + "Modified.java_template").toPath(), Collections.singleton(unit.toString()), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-        }
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+        StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
+    }
+
+    private static Set<String> getFieldNameSet(Path path) throws IOException {
+        CompilationUnit unit = StaticJavaParser.parse(path);
+        return unit.findAll(FieldDeclaration.class).stream()
+                .map(FieldDeclaration::getVariables)
+                .flatMap(Collection::stream)
+                .map(VariableDeclarator::getName)
+                .map(Node::toString)
+                .collect(Collectors.toSet());
     }
 }

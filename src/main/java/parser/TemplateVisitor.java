@@ -1,7 +1,5 @@
 package parser;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.visitor.GenericVisitor;
@@ -10,6 +8,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * ユニットテストをテンプレート化するビジター
@@ -21,7 +20,18 @@ import java.util.List;
  * https://www.javadoc.io/doc/com.github.javaparser/javaparser-core/latest/com/github/javaparser/ast/visitor/VoidVisitorAdapter.html
  */
 public class TemplateVisitor extends VoidVisitorAdapter<Void> {
-    List<Runnable> runnableList = new ArrayList<>();
+    private List<Runnable> runnableList = new ArrayList<>();
+    private String dependenceClassName;
+    private Set<String> fieldNameSet;
+
+    public TemplateVisitor(String dependenceClassName, Set<String> fieldNameSet) {
+        this.dependenceClassName = dependenceClassName;
+        this.fieldNameSet = fieldNameSet;
+    }
+
+    public List<Runnable> getRunnableList() {
+        return this.runnableList;
+    }
 
     @Override
     public void visit(MethodCallExpr methodCallExpr, Void arg) {
@@ -69,8 +79,8 @@ public class TemplateVisitor extends VoidVisitorAdapter<Void> {
     @Override
     public void visit(ClassOrInterfaceType constructor, Void arg) {
         super.visit(constructor, arg);
-        String typeNmae = constructor.asString();
-        if (!typeNmae.contains("<") || !typeNmae.contains(">")) {
+        String typeName = constructor.asString();
+        if (!typeName.contains("<") || !typeName.contains(">")) {
             return;
         }
         String typeParameterName = constructor.getTypeArguments().get().get(0).asString();
@@ -79,10 +89,19 @@ public class TemplateVisitor extends VoidVisitorAdapter<Void> {
     }
 
     @Override
-    public void visit(ClassExpr constructor, Void arg) {
-        System.out.println(constructor.calculateResolvedType().describe());
-//        System.out.println(constructor.setType(createClassType("aaa")));
-//        System.out.println(constructor);
+    public void visit(ClassExpr classExpr, Void arg) {
+        String packageClassName = classExpr.calculateResolvedType().describe();
+        String className = packageClassName.substring(16, packageClassName.length() - 1);
+        classExpr.setType(createClassType(className));
+    }
+
+    @Override
+    public void visit(StringLiteralExpr stringLiteral, Void arg) {
+        String str = stringLiteral.toString().replace("\"", "");
+        if (this.fieldNameSet.contains(str)) {
+            String templateLiteral = "${" + this.dependenceClassName + ".FIELD." + str + "}";
+            stringLiteral.setString(templateLiteral);
+        }
     }
 
     private static ClassOrInterfaceType createClassType(String className) {

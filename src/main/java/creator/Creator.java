@@ -50,38 +50,34 @@ public class Creator {
      * @return 最有力候補
      */
     private static String getNearestWord(String answer, Set<ClassStructure> classStructureSet) {
-//        return candidateSet.stream()
-//                .filter(candidate -> getLevenshteinDistance(answer, candidate) > 50)
-//                .max(Comparator.comparingInt(s -> getLevenshteinDistance(answer, s)))
-//                .orElse(answer);
         String[] line = answer.split("\\.");
         String answerClassName = line[0];
         String structureType = line[1];
-        String structureNmae = line[2];
+        String structureName = line[2];
 
-        ClassStructure classStructure = selectClassStructure(answerClassName, classStructureSet);
-        if ("CLASS".equals(structureType)) {
-            return classStructure.getClassName();
-        }
-        if ("METHOD".equals(structureType)) {
-            return selectWord(structureNmae, classStructure.getMethodSet());
-        }
-        if ("FIELD".equals(structureType)) {
-            return selectWord(structureNmae, classStructure.getFieldSet());
-        }
-        return null;
+        return selectClassStructure(answerClassName, classStructureSet)
+                .map(classStructure -> {
+                    if ("CLASS".equals(structureType)) {
+                        return classStructure.getClassName();
+                    }
+                    if ("METHOD".equals(structureType)) {
+                        return selectWord(structureName, classStructure.getMethodSet()).orElse(null);
+                    }
+                    if ("FIELD".equals(structureType)) {
+                        return selectWord(structureName, classStructure.getFieldSet()).orElse(null);
+                    }
+                    return null;
+                }).orElse(structureName);
     }
 
-    private static ClassStructure selectClassStructure(String answerClassName, Set<ClassStructure> classStructureSet) {
+    private static Optional<ClassStructure> selectClassStructure(String answerClassName, Set<ClassStructure> classStructureSet) {
         return classStructureSet.stream()
-                .max(Comparator.comparingInt(structure -> getLevenshteinDistance(answerClassName, structure.getClassName())))
-                .get();
+                .max(Comparator.comparingInt(structure -> getLevenshteinDistance(answerClassName, structure.getClassName())));
     }
 
-    private static String selectWord(String answerName, Set<String> wordSet) {
+    private static Optional<String> selectWord(String answerName, Set<String> wordSet) {
         return wordSet.stream()
-                .max(Comparator.comparingInt(word -> getLevenshteinDistance(answerName, word)))
-                .get();
+                .max(Comparator.comparingInt(word -> getLevenshteinDistance(answerName, word)));
     }
 
     private static int getLevenshteinDistance(String s1, String s2){
