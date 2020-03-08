@@ -1,62 +1,78 @@
 package parser;
 
-import com.github.javaparser.JavaToken;
 import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.TokenRange;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static com.github.javaparser.JavaToken.Category.IDENTIFIER;
 
 public class Main {
-    public static void main(String[] args) {
-//        Path source = Paths.get("src/main/java/parser.Gum.java");
-        Path source = Paths.get("src/main/java/test.txt");
-        try {
-            CompilationUnit unit = StaticJavaParser.parse(source);
-            System.out.println("***********************************************");
-            unit.getTokenRange()
-                    .ifPresent(Main::test);
+    public static boolean isDev = new File("src/main/resources/junit-4.13.jar").exists();
 
-            System.out.println("***********************************************");
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-        }
+    public static void main(String[] args) throws IOException {
+        String targetTestFileName = isDev ? "template/RucksackTest.java" : args[0];
+        String targetDir = isDev ? "src/main/resources/test/" : "";
+
+        String template = createTemplate(targetTestFileName, targetDir);
+
+        Files.write(new File(targetDir + targetTestFileName + "_template").toPath(), Collections.singleton(template), StandardCharsets.UTF_8);
     }
 
-    public static void test(TokenRange tokens) {
-        List<String> list = StreamSupport.stream(tokens.spliterator(), false)
-                .map(Main::fixIdentifier)
-                .map(JavaToken::getText)
-                .collect(Collectors.toList());
+    public static String createTemplate(String targetTestFileName, String targetDir) throws IOException {
+        String dependenceFileName = targetTestFileName.replace("Test", "");
+        Path dependencePath = Paths.get(targetDir + dependenceFileName);
+        Path targetTestPath = Paths.get(targetDir + targetTestFileName);
+        initConfig(Paths.get(targetDir));
 
-        list.forEach(System.out::print);
+        Set<String> fieldNameList = getFieldNameSet(dependencePath);
+
+        CompilationUnit unit = StaticJavaParser.parse(targetTestPath);
+        TemplateVisitor templateVisitor = new TemplateVisitor(dependenceFileName.substring(0, dependenceFileName.length() - 5), fieldNameList);
+        unit.accept(templateVisitor, null);
+        templateVisitor.getRunnableList().forEach(Runnable::run);
+
+        return unit.toString();
     }
 
-    public static JavaToken fixIdentifier(JavaToken javaToken) {
-        Map<String, String> map = new HashMap<>();
-        map.put("PlasticTray", "Plastictray");
+    private static void initConfig(Path dependenceSourcePath) throws IOException {
+        Path jarPath = isDev ? Paths.get("src/main/resources/junit-4.13.jar") : Paths.get("junit-4.13.jar");
 
-        if (javaToken.getCategory().equals(IDENTIFIER)) {
-            return javaToken;
-        }
-        // if String
-        if (javaToken.getKind() == 89) {
-            String text = javaToken.getText().replace("\"", "");
-            if (map.containsKey(text)) {
-                javaToken.setText("\"" + map.get(text) + "\"");
-            }
-            return javaToken;
-        }
-        return javaToken;
+        CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
+        combinedTypeSolver.add(new ReflectionTypeSolver());
+        // junit
+        JarTypeSolver jarTypeSolver = new JarTypeSolver(jarPath);
+        combinedTypeSolver.add(jarTypeSolver);
+        // 依存ファイル
+        JavaParserTypeSolver javaParserTypeSolver = new JavaParserTypeSolver(dependenceSourcePath);
+        combinedTypeSolver.add(javaParserTypeSolver);
 
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+        StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
+    }
+
+    private static Set<String> getFieldNameSet(Path path) throws IOException {
+        CompilationUnit unit = StaticJavaParser.parse(path);
+        return unit.findAll(FieldDeclaration.class).stream()
+                .map(FieldDeclaration::getVariables)
+                .flatMap(Collection::stream)
+                .map(VariableDeclarator::getName)
+                .map(Node::toString)
+                .collect(Collectors.toSet());
     }
 }

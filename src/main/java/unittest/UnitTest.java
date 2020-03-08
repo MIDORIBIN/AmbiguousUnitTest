@@ -24,9 +24,8 @@ import static creator.Creator.templateToJava;
 public class UnitTest {
 
     public static void main(String[] args) throws IOException {
-//        String template = readFile("perfectSample.template");
-        String template = readFile("Modified.java_template");
-        String gum = readFile("Gum.java");
+        String template = readFile("template/RucksackTest.java_template");
+        String gum = readFile("template/Gum.java");
         String rucksack = readFile("Rucksack2.java");
 
         Result result;
