@@ -1,4 +1,4 @@
-package unittest;
+package ml.mykwlab.unittest;
 
 public class Result {
     private boolean isSuccess;

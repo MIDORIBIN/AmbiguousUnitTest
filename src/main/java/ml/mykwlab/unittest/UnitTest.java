@@ -1,7 +1,7 @@
-package unittest;
+package ml.mykwlab.unittest;
 
-import compile.CompileClasses;
-import compile.CompileException;
+import ml.mykwlab.compile.CompileClasses;
+import ml.mykwlab.compile.CompileException;
 import org.junit.internal.TextListener;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.notification.Failure;
@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static compile.Compile.compile;
-import static creator.Creator.templateToJava;
+import static ml.mykwlab.compile.Compile.compile;
+import static ml.mykwlab.creator.Creator.templateToJava;
 
 public class UnitTest {
 

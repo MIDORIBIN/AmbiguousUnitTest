@@ -1,4 +1,4 @@
-package compile;
+package ml.mykwlab.compile;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;

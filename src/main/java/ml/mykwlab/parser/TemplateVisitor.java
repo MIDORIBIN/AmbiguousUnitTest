@@ -1,4 +1,4 @@
-package parser;
+package ml.mykwlab.parser;
 
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.*;

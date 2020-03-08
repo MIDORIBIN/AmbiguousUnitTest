@@ -1,6 +1,6 @@
-package creator;
+package ml.mykwlab.creator;
 
-import compile.CompileClasses;
+import ml.mykwlab.compile.CompileClasses;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.lucene.search.spell.LevensteinDistance;
 

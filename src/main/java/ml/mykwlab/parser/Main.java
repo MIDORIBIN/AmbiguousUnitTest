@@ -1,4 +1,4 @@
-package parser;
+package ml.mykwlab.parser;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;

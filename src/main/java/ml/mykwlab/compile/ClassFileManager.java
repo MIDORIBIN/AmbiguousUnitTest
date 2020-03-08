@@ -1,4 +1,4 @@
-package compile;
+package ml.mykwlab.compile;
 
 import javax.tools.*;
 import java.security.SecureClassLoader;

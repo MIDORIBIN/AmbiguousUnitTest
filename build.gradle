@@ -14,7 +14,7 @@ repositories {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'parser.Main'
+        attributes 'Main-Class': 'ml.mykwlab.parser.Main'
     }
 }
 
