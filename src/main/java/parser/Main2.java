@@ -51,7 +51,7 @@ public class Main2 {
 
             System.out.println("***********************************************");
 
-            System.out.println(unit);
+//            System.out.println(unit);
             Files.write(new File(targetDir + "Modified.java_template").toPath(), Collections.singleton(unit.toString()), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace(System.err);

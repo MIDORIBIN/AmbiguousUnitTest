@@ -1,5 +1,7 @@
 package parser;
 
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.visitor.GenericVisitor;
@@ -64,7 +66,26 @@ public class TemplateVisitor extends VoidVisitorAdapter<Void> {
         this.runnableList.add(runner);
     }
 
-    private ClassOrInterfaceType createClassType(String className) {
+    @Override
+    public void visit(ClassOrInterfaceType constructor, Void arg) {
+        super.visit(constructor, arg);
+        String typeNmae = constructor.asString();
+        if (!typeNmae.contains("<") || !typeNmae.contains(">")) {
+            return;
+        }
+        String typeParameterName = constructor.getTypeArguments().get().get(0).asString();
+        Runnable runner = () -> constructor.setTypeArguments(createClassType(typeParameterName));
+        this.runnableList.add(runner);
+    }
+
+    @Override
+    public void visit(ClassExpr constructor, Void arg) {
+        System.out.println(constructor.calculateResolvedType().describe());
+//        System.out.println(constructor.setType(createClassType("aaa")));
+//        System.out.println(constructor);
+    }
+
+    private static ClassOrInterfaceType createClassType(String className) {
         return new ClassOrInterfaceType() {
             @Override
             public <R, A> R accept(GenericVisitor<R, A> v, A arg) {

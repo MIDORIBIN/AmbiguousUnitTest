@@ -11,7 +11,7 @@ public class Rucksak {
 		this.arraylist.add(gum);
 	}
 	public int setSum(){
-		int sum = 0;
+		int sum = 1;
 		int size = this.arraylist.size();
 		for(int i = 0; i < size; i++){
 			Gum gum = this.arraylist.get(i);
