@@ -44,7 +44,7 @@ public class UnitTest {
         return Files.lines(file).collect(Collectors.joining(System.lineSeparator()));
     }
 
-    private static Result runUnitTest(String template, String target, List<String> others) throws CompileException {
+    public static Result runUnitTest(String template, String target, List<String> others) throws CompileException {
         CompileClasses compileClasses = compile(target, others);
 
         String test = templateToJava(template, compileClasses);
@@ -75,13 +75,13 @@ public class UnitTest {
 
         System.setOut(defaultPrintStream);
 
-        for (Failure failure : result.getFailures()) {
-            System.out.println(failure.getDescription());
-            System.out.println(failure.getMessage());
-            System.out.println(failure.getTestHeader());
-            System.out.println(failure.getTrace());
-            System.out.println(failure.getTrimmedTrace());
-        }
+//        for (Failure failure : result.getFailures()) {
+//            System.out.println(failure.getDescription());
+//            System.out.println(failure.getMessage());
+//            System.out.println(failure.getTestHeader());
+//            System.out.println(failure.getTrace());
+//            System.out.println(failure.getTrimmedTrace());
+//        }
 
         // Tests run: 3,  Failures: 3
         String message = "Tests " +

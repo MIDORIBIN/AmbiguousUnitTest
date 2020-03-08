@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Main {
+public class Parser {
     public static boolean isDev = new File("src/main/resources/junit-4.13.jar").exists();
 
     public static void main(String[] args) throws IOException {
