@@ -22,18 +22,12 @@ import static ml.mykwlab.creator.Creator.templateToJava;
 
 public class UnitTest {
 
-    public static void main(String[] args) throws IOException {
-        String template = readFile("template/RucksackTest.java_template");
-        String gum = readFile("template/Gum.java");
+    public static void main(String[] args) throws IOException, CompileException {
+        String template = readFile("RucksackTest.java_template");
+        String gum = readFile("Gum.java");
         String rucksack = readFile("Rucksack2.java");
 
-        Result result;
-        try {
-            result = runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
-        } catch (CompileException e) {
-            e.printStackTrace();
-            result = new Result(false, e.getMessage());
-        }
+        Result result = runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
         System.out.println(result);
     }
 

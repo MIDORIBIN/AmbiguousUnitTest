@@ -77,6 +77,7 @@ public class Creator {
 
     private static Optional<String> selectWord(String answerName, Set<String> wordSet) {
         return wordSet.stream()
+                .filter(word -> getLevenshteinDistance(answerName, word) > 50)
                 .max(Comparator.comparingInt(word -> getLevenshteinDistance(answerName, word)));
     }
 
