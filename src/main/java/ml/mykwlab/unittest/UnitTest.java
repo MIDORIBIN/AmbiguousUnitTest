@@ -4,7 +4,6 @@ import ml.mykwlab.compile.CompileClasses;
 import ml.mykwlab.compile.CompileException;
 import org.junit.internal.TextListener;
 import org.junit.runner.JUnitCore;
-import org.junit.runner.notification.Failure;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -30,7 +29,7 @@ public class UnitTest {
 
         Result result;
         try {
-            result = runUnitTest(template, rucksack, Collections.singletonList(gum));
+            result = runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
         } catch (CompileException e) {
             e.printStackTrace();
             result = new Result(false, e.getMessage());
@@ -44,7 +43,7 @@ public class UnitTest {
         return Files.lines(file).collect(Collectors.joining(System.lineSeparator()));
     }
 
-    public static Result runUnitTest(String template, String target, List<String> others) throws CompileException {
+    public static Result runAmbiguousUnitTest(String template, String target, List<String> others) throws CompileException {
         CompileClasses compileClasses = compile(target, others);
 
         String test = templateToJava(template, compileClasses);
@@ -55,7 +54,7 @@ public class UnitTest {
 
         Class<?> testClass = compile(test, javaCodeList).getTargetClass();
 
-        return runUnitTest(testClass);
+        return runAmbiguousUnitTest(testClass);
     }
 
     /**
@@ -64,7 +63,7 @@ public class UnitTest {
      * @param testClass junitのクラスクラス
      * @return ユニットテストの評価結果
      */
-    private synchronized static Result runUnitTest(Class<?> testClass) {
+    private synchronized static Result runAmbiguousUnitTest(Class<?> testClass) {
         PrintStream defaultPrintStream = System.out;
 
         JUnitCore jUnitCore = new JUnitCore();
