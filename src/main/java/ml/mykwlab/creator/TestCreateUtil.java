@@ -2,44 +2,15 @@ package ml.mykwlab.creator;
 
 
 import ml.mykwlab.compile.CompileClasses;
-import ml.mykwlab.compile.CompileException;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.lucene.search.spell.LevensteinDistance;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static ml.mykwlab.compile.Compile.compile;
-
 public class TestCreateUtil {
-    public static void main(String[] args) throws IOException, CompileException {
-
-        String template = readFile("RucksackTest.java_template");
-        String rucksack = readFile("Rucksack4.java");
-        String gum = readFile("Gum.java");
-
-        CompileClasses compileClasses = compile(rucksack, Collections.singletonList(gum));
-
-//        List<String> list = splitTemplate(template);
-//        System.out.println(list);
-        DynamicTest dynamicTest = new DynamicTest(template, createClassStructureSet(compileClasses));
-        System.out.println(dynamicTest.getTestCode());
-        System.out.println(dynamicTest.getNotRunTestCaseCount());
-    }
-
-
-    // debug
-    private static String readFile(String fileName) throws IOException {
-        Path file = Paths.get("src/main/resources/test/" + fileName);
-        return Files.lines(file).collect(Collectors.joining(System.lineSeparator()));
-    }
-
     static List<String> splitTemplate(String template) {
         return Arrays.stream(template.split("(?=( {4}@Test))"))
                 .flatMap(str -> cutNextBlock(str).stream())

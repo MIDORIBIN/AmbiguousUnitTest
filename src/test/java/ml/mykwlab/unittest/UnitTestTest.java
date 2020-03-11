@@ -72,6 +72,7 @@ public class UnitTestTest {
     }
 
     // メソッドなし
+    // 実行するテストケースが一つもないとへんな感じのresultになる
     @Test
     public void runAmbiguousUnitTest5() throws IOException, CompileException {
         String template = readFile("RucksackTest.java_template");
@@ -79,11 +80,9 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack5.java");
 
         Result result = UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
-        System.out.println(result.getFailures());
         assertEquals(1, result.getRunCount());
-        assertEquals(0, result.getFailureCount());
+        assertEquals(1, result.getFailureCount());
     }
-
 
     // debug
     private static String readFile(String fileName) throws IOException {
