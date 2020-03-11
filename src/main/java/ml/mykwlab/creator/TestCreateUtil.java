@@ -1,8 +1,8 @@
 package ml.mykwlab.creator;
 
+
 import ml.mykwlab.compile.CompileClasses;
 import ml.mykwlab.compile.CompileException;
-import ml.mykwlab.unittest.Result;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.lucene.search.spell.LevensteinDistance;
 
@@ -17,20 +17,22 @@ import java.util.stream.Collectors;
 
 import static ml.mykwlab.compile.Compile.compile;
 
-
-public class Creator {
-
+public class TestCreateUtil {
     public static void main(String[] args) throws IOException, CompileException {
+
         String template = readFile("RucksackTest.java_template");
+        String rucksack = readFile("Rucksack4.java");
         String gum = readFile("Gum.java");
-        String rucksack = readFile("Rucksack2.java");
 
         CompileClasses compileClasses = compile(rucksack, Collections.singletonList(gum));
 
-        String[] methodArray = template.split("@Test");
-        System.out.println(templateToJava(methodArray[1], compileClasses));
-
+//        List<String> list = splitTemplate(template);
+//        System.out.println(list);
+        DynamicTest dynamicTest = new DynamicTest(template, createClassStructureSet(compileClasses));
+        System.out.println(dynamicTest.getTestCode());
+        System.out.println(dynamicTest.getNotRunTestCaseCount());
     }
+
 
     // debug
     private static String readFile(String fileName) throws IOException {
@@ -38,17 +40,37 @@ public class Creator {
         return Files.lines(file).collect(Collectors.joining(System.lineSeparator()));
     }
 
-    public static String templateToJava(String template, CompileClasses compileClasses) {
+    static List<String> splitTemplate(String template) {
+        return Arrays.stream(template.split("(?=( {4}@Test))"))
+                .flatMap(str -> cutNextBlock(str).stream())
+                .collect(Collectors.toList());
+    }
+
+    private static List<String> cutNextBlock(String lines) {
+        Pattern pattern = Pattern.compile(System.lineSeparator() + " {4}}");
+        Matcher matcher = pattern.matcher(lines);
+        if (!matcher.find()) {
+            return Collections.singletonList(lines);
+        }
+
+        int index = matcher.end();
+        List<String> list = new ArrayList<>();
+
+        list.add(lines.substring(0, index));
+        list.add(lines.substring(index));
+
+        return list;
+    }
+
+    public static Set<ClassStructure> createClassStructureSet(CompileClasses compileClasses) {
         Set<ClassStructure> classStructureSet = new HashSet<>();
         classStructureSet.add(new ClassStructure(compileClasses.getTargetClass()));
         compileClasses.getOtherClassList()
                 .forEach(other -> classStructureSet.add(new ClassStructure(other)));
-
-        Map<String, String> map = createMap(template, classStructureSet);
-        return new StringSubstitutor(map).replace(template);
+        return classStructureSet;
     }
 
-    private static Map<String, String> createMap(String template, Set<ClassStructure> classStructureSet) {
+    static Map<String, String> createAmbiguousMap(String template, Set<ClassStructure> classStructureSet) {
         Set<String> answerSet = createAnswerSet(template);
 
         return answerSet.stream().collect(Collectors.toMap(
@@ -56,7 +78,6 @@ public class Creator {
                 answer -> getNearestWord(answer, classStructureSet)
         ));
     }
-
 
     private static Set<String> createAnswerSet(String template) {
         Pattern p = Pattern.compile("\\$\\{([^}]+)}");
@@ -70,8 +91,8 @@ public class Creator {
     }
 
     /**
-     * 距離が50以上の時のみ候補から最有力候補を返す
-     * 全部50以下なら模範解答をそのまま返す
+     * 距離が70以上の時のみ候補から最有力候補を返す
+     * 全部70以下なら空文字を返す
      * @param answer 模範解答
      * @param classStructureSet 候補のセット
      * @return 最有力候補
@@ -88,13 +109,13 @@ public class Creator {
                         return classStructure.getClassName();
                     }
                     if ("METHOD".equals(structureType)) {
-                        return selectWord(structureName, classStructure.getMethodSet()).orElse(null);
+                        return selectWord(structureName, classStructure.getMethodSet()).orElse("");
                     }
                     if ("FIELD".equals(structureType)) {
-                        return selectWord(structureName, classStructure.getFieldSet()).orElse(null);
+                        return selectWord(structureName, classStructure.getFieldSet()).orElse("");
                     }
                     return null;
-                }).orElse(structureName);
+                }).orElse("");
     }
 
     private static Optional<ClassStructure> selectClassStructure(String answerClassName, Set<ClassStructure> classStructureSet) {
@@ -104,7 +125,7 @@ public class Creator {
 
     private static Optional<String> selectWord(String answerName, Set<String> wordSet) {
         return wordSet.stream()
-                .filter(word -> getLevenshteinDistance(answerName, word) > 50)
+                .filter(word -> getLevenshteinDistance(answerName, word) > 70)
                 .max(Comparator.comparingInt(word -> getLevenshteinDistance(answerName, word)));
     }
 
@@ -112,4 +133,19 @@ public class Creator {
         LevensteinDistance dis =  new LevensteinDistance();
         return (int) (dis.getDistance(s1, s2) * 100);
     }
+
+    static boolean isTemplateMethod(String block) {
+        return block.contains("${");
+    }
+
+
+
+    static boolean isAllImplementation(Map<String, String> ambiguousMap) {
+        return !ambiguousMap.containsValue("");
+    }
+
+    static String deploymentTemplate(String template, Map<String, String> ambiguousMap) {
+        return new StringSubstitutor(ambiguousMap).replace(template);
+    }
+
 }

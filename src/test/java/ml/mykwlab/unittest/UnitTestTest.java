@@ -2,6 +2,7 @@ package ml.mykwlab.unittest;
 
 import ml.mykwlab.compile.CompileException;
 import org.junit.Test;
+import org.junit.runner.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,7 +23,9 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack.java");
 
         Result result = UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
-        assertEquals(result.toString(), "Result{isSuccess=true, message='Tests run: 3, Failures: 0'}");
+
+        assertEquals(3, result.getRunCount());
+        assertEquals(0, result.getFailureCount());
     }
 
     // 依存ファイルなし
@@ -42,7 +45,8 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack2.java");
 
         Result result = UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
-        assertEquals(result.toString(), "Result{isSuccess=true, message='Tests run: 3, Failures: 0'}");
+        assertEquals(3, result.getRunCount());
+        assertEquals(0, result.getFailureCount());
     }
 
     // 空ファイル、コンパイルが通る
@@ -63,7 +67,21 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack4.java");
 
         Result result = UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
-        assertEquals(result.toString(), "Result{isSuccess=true, message='Tests run: 3, Failures: 0'}");
+        assertEquals(2, result.getRunCount());
+        assertEquals(0, result.getFailureCount());
+    }
+
+    // メソッドなし
+    @Test
+    public void runAmbiguousUnitTest5() throws IOException, CompileException {
+        String template = readFile("RucksackTest.java_template");
+        String gum = readFile("Gum.java");
+        String rucksack = readFile("Rucksack5.java");
+
+        Result result = UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
+        System.out.println(result.getFailures());
+        assertEquals(1, result.getRunCount());
+        assertEquals(0, result.getFailureCount());
     }
 
 

@@ -1,9 +1,9 @@
 package ml.mykwlab.unittest;
 
-public class Result {
+public class UnitTestResult {
     private boolean isSuccess;
     private String message;
-    public Result(boolean isSuccess, String message) {
+    public UnitTestResult(boolean isSuccess, String message) {
         this.isSuccess = isSuccess;
         this.message = message;
     }

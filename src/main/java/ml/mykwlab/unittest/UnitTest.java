@@ -2,8 +2,10 @@ package ml.mykwlab.unittest;
 
 import ml.mykwlab.compile.CompileClasses;
 import ml.mykwlab.compile.CompileException;
+import ml.mykwlab.creator.DynamicTest;
 import org.junit.internal.TextListener;
 import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,7 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ml.mykwlab.compile.Compile.compile;
-import static ml.mykwlab.creator.Creator.templateToJava;
+import static ml.mykwlab.creator.TestCreateUtil.createClassStructureSet;
 
 public class UnitTest {
 
@@ -40,7 +42,8 @@ public class UnitTest {
     public static Result runAmbiguousUnitTest(String template, String target, List<String> others) throws CompileException {
         CompileClasses compileClasses = compile(target, others);
 
-        String test = templateToJava(template, compileClasses);
+        DynamicTest dynamicTest = new DynamicTest(template, createClassStructureSet(compileClasses));
+        String test = dynamicTest.getTestCode();
 
         List<String> javaCodeList = new ArrayList<>();
         javaCodeList.add(target);
@@ -64,27 +67,14 @@ public class UnitTest {
         ByteArrayOutputStream resultBytes = new ByteArrayOutputStream();
         PrintStream resultStream = new PrintStream(resultBytes);
         jUnitCore.addListener(new TextListener(resultStream));
-        org.junit.runner.Result result = jUnitCore.run(testClass);
+        Result result = jUnitCore.run(testClass);
 
         System.setOut(defaultPrintStream);
-
-//        for (Failure failure : result.getFailures()) {
-//            System.out.println(failure.getDescription());
-//            System.out.println(failure.getMessage());
-//            System.out.println(failure.getTestHeader());
-//            System.out.println(failure.getTrace());
-//            System.out.println(failure.getTrimmedTrace());
-//        }
-
-        // Tests run: 3,  Failures: 3
-        String message = "Tests " +
-                "run: " + result.getRunCount() + ", " +
-                "Failures: " + result.getFailureCount();
 
         // 無限ループ対策
         stopTestThread();
 
-        return new Result(result.wasSuccessful(), message);
+        return result;
     }
 
     /**
