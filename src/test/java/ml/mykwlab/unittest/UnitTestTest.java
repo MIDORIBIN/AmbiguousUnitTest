@@ -28,6 +28,7 @@ public class UnitTestTest {
 
         assertEquals(3, result.getRunCount());
         assertEquals(0, result.getFailureCount());
+        assertEquals(0, dynamicTest.getNotRunTestCaseCount());
     }
 
     // 依存ファイルなし
@@ -51,6 +52,7 @@ public class UnitTestTest {
 
         assertEquals(3, result.getRunCount());
         assertEquals(0, result.getFailureCount());
+        assertEquals(0, dynamicTest.getNotRunTestCaseCount());
     }
 
     // 空ファイル、コンパイルが通る
@@ -75,6 +77,7 @@ public class UnitTestTest {
 
         assertEquals(2, result.getRunCount());
         assertEquals(0, result.getFailureCount());
+        assertEquals(1, dynamicTest.getNotRunTestCaseCount());
     }
 
     // メソッドなし
@@ -90,6 +93,7 @@ public class UnitTestTest {
 
         assertEquals(1, result.getRunCount());
         assertEquals(1, result.getFailureCount());
+        assertEquals(3, dynamicTest.getNotRunTestCaseCount());
     }
 
     // debug
