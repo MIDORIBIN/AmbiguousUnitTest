@@ -2,7 +2,7 @@ package ml.mykwlab.creator;
 
 
 import ml.mykwlab.compile.CompileClasses;
-import org.apache.commons.text.StringSubstitutor;
+import ml.mykwlab.compile.CompileException;
 import org.apache.lucene.search.spell.LevensteinDistance;
 
 import java.util.*;
@@ -10,7 +10,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class TestCreateUtil {
+import static ml.mykwlab.compile.Compile.compile;
+
+class TestCreateUtil {
     static List<String> splitTemplate(String template) {
         return Arrays.stream(template.split("(?=( {4}@Test))"))
                 .flatMap(str -> cutNextBlock(str).stream())
@@ -33,7 +35,9 @@ public class TestCreateUtil {
         return list;
     }
 
-    public static Set<ClassStructure> createClassStructureSet(CompileClasses compileClasses) {
+    static Set<ClassStructure> createClassStructureSet(String target, List<String> others) throws CompileException {
+        CompileClasses compileClasses = compile(target, others);
+
         Set<ClassStructure> classStructureSet = new HashSet<>();
         classStructureSet.add(new ClassStructure(compileClasses.getTargetClass()));
         compileClasses.getOtherClassList()
@@ -104,19 +108,4 @@ public class TestCreateUtil {
         LevensteinDistance dis =  new LevensteinDistance();
         return (int) (dis.getDistance(s1, s2) * 100);
     }
-
-    static boolean isTemplateMethod(String block) {
-        return block.contains("${");
-    }
-
-
-
-    static boolean isAllImplementation(Map<String, String> ambiguousMap) {
-        return !ambiguousMap.containsValue("");
-    }
-
-    static String deploymentTemplate(String template, Map<String, String> ambiguousMap) {
-        return new StringSubstitutor(ambiguousMap).replace(template);
-    }
-
 }

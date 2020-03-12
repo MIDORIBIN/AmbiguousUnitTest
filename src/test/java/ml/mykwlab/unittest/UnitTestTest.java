@@ -1,6 +1,7 @@
 package ml.mykwlab.unittest;
 
 import ml.mykwlab.compile.CompileException;
+import ml.mykwlab.creator.DynamicTest;
 import org.junit.Test;
 import org.junit.runner.Result;
 
@@ -22,7 +23,8 @@ public class UnitTestTest {
         String gum = readFile("Gum.java");
         String rucksack = readFile("Rucksack.java");
 
-        Result result = UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
+        DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
+        Result result =  dynamicTest.run();
 
         assertEquals(3, result.getRunCount());
         assertEquals(0, result.getFailureCount());
@@ -34,7 +36,7 @@ public class UnitTestTest {
         String template = readFile("RucksackTest.java_template");
         String rucksack = readFile("Rucksack.java");
 
-        UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.emptyList());
+        new DynamicTest(template, rucksack, Collections.emptyList());
     }
 
     // すべての項目はあるけど、すべて名前が間違ってる
@@ -44,7 +46,9 @@ public class UnitTestTest {
         String gum = readFile("Gum.java");
         String rucksack = readFile("Rucksack2.java");
 
-        Result result = UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
+        DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
+        Result result =  dynamicTest.run();
+
         assertEquals(3, result.getRunCount());
         assertEquals(0, result.getFailureCount());
     }
@@ -56,7 +60,7 @@ public class UnitTestTest {
         String gum = readFile("Gum.java");
         String rucksack = readFile("Rucksack3.java");
 
-        UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
+        new DynamicTest(template, rucksack, Collections.singletonList(gum));
     }
 
     // 足りない項目がある
@@ -66,7 +70,9 @@ public class UnitTestTest {
         String gum = readFile("Gum.java");
         String rucksack = readFile("Rucksack4.java");
 
-        Result result = UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
+        DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
+        Result result =  dynamicTest.run();
+
         assertEquals(2, result.getRunCount());
         assertEquals(0, result.getFailureCount());
     }
@@ -79,7 +85,9 @@ public class UnitTestTest {
         String gum = readFile("Gum.java");
         String rucksack = readFile("Rucksack5.java");
 
-        Result result = UnitTest.runAmbiguousUnitTest(template, rucksack, Collections.singletonList(gum));
+        DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
+        Result result =  dynamicTest.run();
+
         assertEquals(1, result.getRunCount());
         assertEquals(1, result.getFailureCount());
     }

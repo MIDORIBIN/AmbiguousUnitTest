@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ClassStructure {
+class ClassStructure {
     private String className;
     private Set<String> fieldSet;
     private Set<String> methodSet;
