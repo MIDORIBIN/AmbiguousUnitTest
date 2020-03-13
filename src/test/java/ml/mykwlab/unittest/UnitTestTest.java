@@ -30,6 +30,21 @@ public class UnitTestTest {
         assertEquals(0, result.getNotRunCount());
     }
 
+    // テンプレートじゃないやつ（ただのjavaファイル）
+    @Test
+    public void runAmbiguousUnitTestNotTemplate() throws IOException, CompileException {
+        String template = readFile("RucksackTest.java");
+        String gum = readFile("Gum.java");
+        String rucksack = readFile("Rucksack.java");
+
+        DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
+        UnitTestResult result = dynamicTest.run();
+
+        assertEquals(3, result.getSuccessCount());
+        assertEquals(0, result.getFailureCount());
+        assertEquals(0, result.getNotRunCount());
+    }
+
     // 依存ファイルなし
     @Test(expected = CompileException.class)
     public void runAmbiguousUnitTest1() throws IOException, CompileException {
@@ -86,6 +101,22 @@ public class UnitTestTest {
         String template = readFile("RucksackTest.java_template");
         String gum = readFile("Gum.java");
         String rucksack = readFile("Rucksack5.java");
+
+        DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
+        UnitTestResult result = dynamicTest.run();
+
+        assertEquals(0, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+        assertEquals(3, result.getNotRunCount());
+    }
+
+    // フィールド名が大きく間違ってる(arrayList -> list)
+    // テストケースが0になる
+    @Test
+    public void runAmbiguousUnitTest6() throws IOException, CompileException {
+        String template = readFile("RucksackTest.java_template");
+        String gum = readFile("Gum.java");
+        String rucksack = readFile("Rucksack6.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
         UnitTestResult result = dynamicTest.run();

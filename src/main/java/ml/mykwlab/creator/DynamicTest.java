@@ -64,4 +64,8 @@ public class DynamicTest {
         Result result = runUnitTest(testClass);
         return new UnitTestResult(result, this.notRunTestCaseCount);
     }
+
+//    public String getTestCode() {
+//        return testCode;
+//    }
 }
