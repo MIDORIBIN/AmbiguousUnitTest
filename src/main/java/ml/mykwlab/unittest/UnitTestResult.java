@@ -1,26 +1,27 @@
 package ml.mykwlab.unittest;
 
+import org.junit.runner.Result;
+
 public class UnitTestResult {
-    private boolean isSuccess;
-    private String message;
-    public UnitTestResult(boolean isSuccess, String message) {
-        this.isSuccess = isSuccess;
-        this.message = message;
+    private int successCount;
+    private int failureCount;
+    private int notRunCount;
+
+    public UnitTestResult (Result result, int notRunCount) {
+        this.successCount = result.getRunCount() - result.getFailureCount();
+        this.failureCount = result.getFailureCount();
+        this.notRunCount = notRunCount;
     }
 
-    public boolean getIsSuccess() {
-        return this.isSuccess;
+    public int getSuccessCount() {
+        return this.successCount;
     }
 
-    public String getMessage() {
-        return this.message;
+    public int getFailureCount() {
+        return this.failureCount;
     }
 
-    @Override
-    public String toString() {
-        return "Result{" +
-                "isSuccess=" + isSuccess +
-                ", message='" + message + '\'' +
-                '}';
+    public int getNotRunCount() {
+        return this.notRunCount;
     }
 }

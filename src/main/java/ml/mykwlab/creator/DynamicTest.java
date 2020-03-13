@@ -1,6 +1,7 @@
 package ml.mykwlab.creator;
 
 import ml.mykwlab.compile.CompileException;
+import ml.mykwlab.unittest.UnitTestResult;
 import org.apache.commons.text.StringSubstitutor;
 import org.junit.runner.Result;
 
@@ -58,12 +59,9 @@ public class DynamicTest {
         return new StringSubstitutor(ambiguousMap).replace(template);
     }
 
-    public Result run() throws CompileException {
+    public UnitTestResult run() throws CompileException {
         Class<?> testClass = compile(this.testCode, codeList).getTargetClass();
-        return runUnitTest(testClass);
-    }
-
-    public int getNotRunTestCaseCount() {
-        return this.notRunTestCaseCount;
+        Result result = runUnitTest(testClass);
+        return new UnitTestResult(result, this.notRunTestCaseCount);
     }
 }

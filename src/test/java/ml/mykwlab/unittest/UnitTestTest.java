@@ -3,7 +3,6 @@ package ml.mykwlab.unittest;
 import ml.mykwlab.compile.CompileException;
 import ml.mykwlab.creator.DynamicTest;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,11 +23,11 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        Result result =  dynamicTest.run();
+        UnitTestResult result = dynamicTest.run();
 
-        assertEquals(3, result.getRunCount());
+        assertEquals(3, result.getSuccessCount());
         assertEquals(0, result.getFailureCount());
-        assertEquals(0, dynamicTest.getNotRunTestCaseCount());
+        assertEquals(0, result.getNotRunCount());
     }
 
     // 依存ファイルなし
@@ -48,11 +47,11 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack2.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        Result result =  dynamicTest.run();
+        UnitTestResult result = dynamicTest.run();
 
-        assertEquals(3, result.getRunCount());
+        assertEquals(3, result.getSuccessCount());
         assertEquals(0, result.getFailureCount());
-        assertEquals(0, dynamicTest.getNotRunTestCaseCount());
+        assertEquals(0, result.getNotRunCount());
     }
 
     // 空ファイル、コンパイルが通る
@@ -73,11 +72,11 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack4.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        Result result =  dynamicTest.run();
+        UnitTestResult result = dynamicTest.run();
 
-        assertEquals(2, result.getRunCount());
+        assertEquals(2, result.getSuccessCount());
         assertEquals(0, result.getFailureCount());
-        assertEquals(1, dynamicTest.getNotRunTestCaseCount());
+        assertEquals(1, result.getNotRunCount());
     }
 
     // メソッドなし
@@ -89,11 +88,11 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack5.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        Result result =  dynamicTest.run();
+        UnitTestResult result = dynamicTest.run();
 
-        assertEquals(1, result.getRunCount());
+        assertEquals(0, result.getSuccessCount());
         assertEquals(1, result.getFailureCount());
-        assertEquals(3, dynamicTest.getNotRunTestCaseCount());
+        assertEquals(3, result.getNotRunCount());
     }
 
     // debug
