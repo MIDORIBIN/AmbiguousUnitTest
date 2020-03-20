@@ -1,4 +1,4 @@
-package ml.mykwlab.creator;
+package ml.mykwlab.template;
 
 
 import ml.mykwlab.compile.CompileClasses;
@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 
 import static ml.mykwlab.compile.Compile.compile;
 
-class TestCreateUtil {
-    static List<String> splitTemplate(String template) {
+public class TestCreateUtil {
+    public static List<String> splitTemplate(String template) {
         return Arrays.stream(template.split("(?=( {4}@Test))"))
                 .flatMap(str -> cutNextBlock(str).stream())
                 .collect(Collectors.toList());
@@ -35,7 +35,7 @@ class TestCreateUtil {
         return list;
     }
 
-    static Set<ClassStructure> createClassStructureSet(String target, List<String> others) throws CompileException {
+    public static Set<ClassStructure> createClassStructureSet(String target, List<String> others) throws CompileException {
         CompileClasses compileClasses = compile(target, others);
 
         Set<ClassStructure> classStructureSet = new HashSet<>();
@@ -45,7 +45,7 @@ class TestCreateUtil {
         return classStructureSet;
     }
 
-    static Map<String, String> createAmbiguousMap(String template, Set<ClassStructure> classStructureSet) {
+    public static Map<String, String> createAmbiguousMap(String template, Set<ClassStructure> classStructureSet) {
         Set<String> answerSet = createAnswerSet(template);
 
         return answerSet.stream().collect(Collectors.toMap(

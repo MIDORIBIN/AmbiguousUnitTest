@@ -1,4 +1,4 @@
-package ml.mykwlab.creator;
+package ml.mykwlab.template;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-class ClassStructure {
+public class ClassStructure {
     private String className;
     private Set<String> fieldSet;
     private Set<String> methodSet;

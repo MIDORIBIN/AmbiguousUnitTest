@@ -1,7 +1,6 @@
 package ml.mykwlab.unittest;
 
 import ml.mykwlab.compile.CompileException;
-import ml.mykwlab.creator.DynamicTest;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -9,9 +8,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 
 public class UnitTestTest {
@@ -23,11 +26,14 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        UnitTestResult result = dynamicTest.run();
+        Set<TestCaseResult> testCaseResultSet = dynamicTest.run();
 
-        assertEquals(3, result.getSuccessCount());
-        assertEquals(0, result.getFailureCount());
-        assertEquals(0, result.getNotRunCount());
+        Map<Status, List<TestCaseResult>> map = testCaseResultSet.stream()
+                .collect(Collectors.groupingBy(TestCaseResult::getStatus));
+
+        assertEquals(3, map.get(Status.SUCCESS).size());
+        assertNull(map.get(Status.FAILURE));
+        assertNull(map.get(Status.NOT_RUN));
     }
 
     // テンプレートじゃないやつ（ただのjavaファイル）
@@ -38,11 +44,14 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        UnitTestResult result = dynamicTest.run();
+        Set<TestCaseResult> testCaseResultSet = dynamicTest.run();
 
-        assertEquals(3, result.getSuccessCount());
-        assertEquals(0, result.getFailureCount());
-        assertEquals(0, result.getNotRunCount());
+        Map<Status, List<TestCaseResult>> map = testCaseResultSet.stream()
+                .collect(Collectors.groupingBy(TestCaseResult::getStatus));
+
+        assertEquals(3, map.get(Status.SUCCESS).size());
+        assertNull(map.get(Status.FAILURE));
+        assertNull(map.get(Status.NOT_RUN));
     }
 
     // 依存ファイルなし
@@ -62,11 +71,14 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack2.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        UnitTestResult result = dynamicTest.run();
+        Set<TestCaseResult> testCaseResultSet = dynamicTest.run();
 
-        assertEquals(3, result.getSuccessCount());
-        assertEquals(0, result.getFailureCount());
-        assertEquals(0, result.getNotRunCount());
+        Map<Status, List<TestCaseResult>> map = testCaseResultSet.stream()
+                .collect(Collectors.groupingBy(TestCaseResult::getStatus));
+
+        assertEquals(3, map.get(Status.SUCCESS).size());
+        assertNull(map.get(Status.FAILURE));
+        assertNull(map.get(Status.NOT_RUN));
     }
 
     // 空ファイル、コンパイルが通る
@@ -87,11 +99,14 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack4.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        UnitTestResult result = dynamicTest.run();
+        Set<TestCaseResult> testCaseResultSet = dynamicTest.run();
 
-        assertEquals(2, result.getSuccessCount());
-        assertEquals(0, result.getFailureCount());
-        assertEquals(1, result.getNotRunCount());
+        Map<Status, List<TestCaseResult>> map = testCaseResultSet.stream()
+                .collect(Collectors.groupingBy(TestCaseResult::getStatus));
+
+        assertEquals(2, map.get(Status.SUCCESS).size());
+        assertNull(map.get(Status.FAILURE));
+        assertEquals(1, map.get(Status.NOT_RUN).size());
     }
 
     // メソッドなし
@@ -103,11 +118,14 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack5.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        UnitTestResult result = dynamicTest.run();
+        Set<TestCaseResult> testCaseResultSet = dynamicTest.run();
 
-        assertEquals(0, result.getSuccessCount());
-        assertEquals(1, result.getFailureCount());
-        assertEquals(3, result.getNotRunCount());
+        Map<Status, List<TestCaseResult>> map = testCaseResultSet.stream()
+                .collect(Collectors.groupingBy(TestCaseResult::getStatus));
+
+        assertNull(map.get(Status.SUCCESS));
+        assertEquals(1, map.get(Status.FAILURE).size());
+        assertEquals(3, map.get(Status.NOT_RUN).size());
     }
 
     // フィールド名が大きく間違ってる(arrayList -> list)
@@ -119,11 +137,33 @@ public class UnitTestTest {
         String rucksack = readFile("Rucksack6.java");
 
         DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
-        UnitTestResult result = dynamicTest.run();
+        Set<TestCaseResult> testCaseResultSet = dynamicTest.run();
 
-        assertEquals(0, result.getSuccessCount());
-        assertEquals(1, result.getFailureCount());
-        assertEquals(3, result.getNotRunCount());
+        Map<Status, List<TestCaseResult>> map = testCaseResultSet.stream()
+                .collect(Collectors.groupingBy(TestCaseResult::getStatus));
+
+        assertNull(map.get(Status.SUCCESS));
+        assertEquals(1, map.get(Status.FAILURE).size());
+        assertEquals(3, map.get(Status.NOT_RUN).size());
+    }
+
+    // フィールド名が大きく間違ってる(arrayList -> list)
+    // テストケースが0になる
+    @Test
+    public void runAmbiguousUnitTest7() throws IOException, CompileException {
+        String template = readFile("RucksackTest.java_template");
+        String gum = readFile("Gum.java");
+        String rucksack = readFile("Rucksack7.java");
+
+        DynamicTest dynamicTest = new DynamicTest(template, rucksack, Collections.singletonList(gum));
+        Set<TestCaseResult> testCaseResultSet = dynamicTest.run();
+
+        Map<Status, List<TestCaseResult>> map = testCaseResultSet.stream()
+                .collect(Collectors.groupingBy(TestCaseResult::getStatus));
+
+        assertEquals(1, map.get(Status.SUCCESS).size());
+        assertEquals(1, map.get(Status.FAILURE).size());
+        assertEquals(1, map.get(Status.NOT_RUN).size());
     }
 
     // debug
